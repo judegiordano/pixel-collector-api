@@ -1,0 +1,135 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+dependencies:
+  sst:
+    specifier: ^3.3.3
+    version: 3.3.3
+
+devDependencies:
+  '@types/aws-lambda':
+    specifier: 8.10.143
+    version: 8.10.143
+  sst-linux-x64:
+    specifier: ^3.0.68
+    version: 3.0.68
+
+packages:
+
+  /@types/aws-lambda@8.10.143:
+    resolution: {integrity: sha512-u5vzlcR14ge/4pMTTMDQr3MF0wEe38B2F9o84uC4F43vN5DGTy63npRrB6jQhyt+C0lGv4ZfiRcRkqJoZuPnmg==}
+    dev: true
+
+  /aws4fetch@1.0.20:
+    resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
+    dev: false
+
+  /jose@4.15.9:
+    resolution: {integrity: sha512-1vUQX+IdDMVPj4k8kOxgUqlcK518yluMuGZwqlr44FS1ppZB/5GWh4rZG89erpOBOJjU/OBsnCVFfapsRz6nEA==}
+    dev: false
+
+  /jose@5.2.3:
+    resolution: {integrity: sha512-KUXdbctm1uHVL8BYhnyHkgp3zDX5KW8ZhAKVFEfUbU2P8Alpzjb+48hHvjOdQIyPshoblhzsuqOwEEAbtHVirA==}
+    dev: false
+
+  /lru-cache@6.0.0:
+    resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
+    engines: {node: '>=10'}
+    dependencies:
+      yallist: 4.0.0
+    dev: false
+
+  /object-hash@2.2.0:
+    resolution: {integrity: sha512-gScRMn0bS5fH+IuwyIFgnh9zBdo4DV+6GhygmWM9HyNJSgS0hScp1f5vjtm7oIIOiT9trXrShAkLFSc2IqKNgw==}
+    engines: {node: '>= 6'}
+    dev: false
+
+  /oidc-token-hash@5.0.3:
+    resolution: {integrity: sha512-IF4PcGgzAr6XXSff26Sk/+P4KZFJVuHAJZj3wgO3vX2bMdNVp/QXTP3P7CEm9V1IdG8lDLY3HhiqpsE/nOwpPw==}
+    engines: {node: ^10.13.0 || >=12.0.0}
+    dev: false
+
+  /openid-client@5.6.4:
+    resolution: {integrity: sha512-T1h3B10BRPKfcObdBklX639tVz+xh34O7GjofqrqiAQdm7eHsQ00ih18x6wuJ/E6FxdtS2u3FmUGPDeEcMwzNA==}
+    dependencies:
+      jose: 4.15.9
+      lru-cache: 6.0.0
+      object-hash: 2.2.0
+      oidc-token-hash: 5.0.3
+    dev: false
+
+  /sst-darwin-arm64@3.3.3:
+    resolution: {integrity: sha512-kVwvk9U80TYZBkJw0JlC/2pdmPB4sz4vjnRIw74kDvspMZiYHuC/UquwEFOPiwlinIffRbuh/hwbBsrXisuykg==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /sst-darwin-x64@3.3.3:
+    resolution: {integrity: sha512-RBmaW399x+m5rhelLhegK6bm/gS/fkX7lH2aA6HuA5sw3HuSwbcat8Z668BfIZ0yUj4YSJyttRYfqfXO/O4mYw==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /sst-linux-arm64@3.3.3:
+    resolution: {integrity: sha512-itiyFzotkAmoJr+KKtcvWZIU/hZFQPpDp2CeLFSR+5MLG/+BS77u7jIhKuezSBotG7JWZUA7EbUE7LmwH2o/nA==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /sst-linux-x64@3.0.68:
+    resolution: {integrity: sha512-l84ga5sMWSbtU2kSFRpToTPSr9NB9jGfshSleXJo7MplSovF9+7xAmSRoxpw/Pfjmo0m+20EiMv3DGX6O94CzQ==}
+    cpu: [x64]
+    os: [linux]
+    dev: true
+
+  /sst-linux-x64@3.3.3:
+    resolution: {integrity: sha512-6khHdE3fKHqYxoOuq6yaMxf8II4cBXC4tz/uH7tjRsmLJnS/L8LfWctmJS+ImDhtXg9q3p64HbVBG5jrnN8QWw==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /sst-linux-x86@3.3.3:
+    resolution: {integrity: sha512-76gYVikvBgPhXbB+/HwwshMsrb/qJHee03oJvsdSg0ToWyvSA4/imRjdK9JgdsPNHmgro0UTI3smqPqbOGKvnQ==}
+    cpu: [x86]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /sst@3.3.3:
+    resolution: {integrity: sha512-M8q6vP6E/S0RKd5P9ODjDsU85mbhaM7sSail8UQEz/xN/JZttkoMdCC/uTXUaJ9uYRuC71pKXCXqU9LgZ0UeMA==}
+    hasBin: true
+    peerDependencies:
+      hono: 4.x
+      valibot: 0.30.x
+    peerDependenciesMeta:
+      hono:
+        optional: true
+      valibot:
+        optional: true
+    dependencies:
+      aws4fetch: 1.0.20
+      jose: 5.2.3
+      openid-client: 5.6.4
+    optionalDependencies:
+      sst-darwin-arm64: 3.3.3
+      sst-darwin-x64: 3.3.3
+      sst-linux-arm64: 3.3.3
+      sst-linux-x64: 3.3.3
+      sst-linux-x86: 3.3.3
+    dev: false
+
+  /yallist@4.0.0:
+    resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
+    dev: false
