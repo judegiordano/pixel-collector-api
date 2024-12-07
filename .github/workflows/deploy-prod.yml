@@ -83,6 +83,5 @@ jobs:
     env:
       STAGE: prod
       LOG_LEVEL: info
-      MONGO_URI: ${{ secrets.MONGO_URI }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

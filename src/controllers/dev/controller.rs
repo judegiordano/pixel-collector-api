@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub async fn ping(State(state): State<AppState>) -> ApiResponse {
-    if let Some(stage) = state.env_cache.get("stage").await {
+    if let Some(stage) = state.stage_cache.get("stage").await {
         return Ok(Json(stage).into_response());
     }
     let Env { stage, .. } = Env::load()?;
@@ -16,7 +16,7 @@ pub async fn ping(State(state): State<AppState>) -> ApiResponse {
         last_updated: Utc::now().timestamp_millis(),
     };
     state
-        .env_cache
+        .stage_cache
         .insert("stage".to_string(), ping.clone())
         .await;
     Ok(Json(ping).into_response())

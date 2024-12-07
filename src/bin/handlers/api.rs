@@ -1,7 +1,9 @@
 use lambda_http::Error;
 use pixel_collector_api::{
+    aws::dynamo::connect,
     cache,
     controllers::routes,
+    env::Env,
     logger,
     types::{AppState, ONE_MINUTE_IN_MS},
 };
@@ -10,7 +12,9 @@ use pixel_collector_api::{
 pub async fn main() -> Result<(), Error> {
     logger::init()?;
     let state = AppState {
-        env_cache: cache::prepare(10_000, ONE_MINUTE_IN_MS),
+        auth_table_client: connect().await,
+        env: Env::load()?,
+        stage_cache: cache::prepare(10_000, ONE_MINUTE_IN_MS),
     };
     let app = axum::Router::new().nest("/", routes()).with_state(state);
     if cfg!(debug_assertions) {

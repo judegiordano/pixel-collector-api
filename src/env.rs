@@ -15,10 +15,8 @@ pub enum Stage {
 pub struct Env {
     pub stage: Stage,
     pub log_level: Level,
-    pub mongo_uri: String,
-    #[allow(dead_code)]
-    bucket_name: String,
-    
+    pub bucket_name: String,
+    pub auth_table_name: String,
 }
 
 impl Env {
@@ -57,10 +55,6 @@ impl Env {
         }
     }
 
-    pub fn mongo_uri() -> Result<String, AppError> {
-        Self::_get_required_string("MONGO_URI")
-    }
-
     pub fn load() -> Result<Self, AppError> {
         if cfg!(debug_assertions) {
             use dotenv::dotenv;
@@ -69,9 +63,8 @@ impl Env {
         Ok(Self {
             stage: Self::stage()?,
             log_level: Self::log_level(),
-            mongo_uri: Self::mongo_uri()?,
+            auth_table_name: Self::_get_required_string("AUTH_TABLE_NAME")?,
             bucket_name: Self::_get_required_string("BUCKET_NAME")?,
-            
         })
     }
 }

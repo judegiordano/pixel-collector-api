@@ -17,13 +17,12 @@ export default $config({
     const { stage } = $app;
     const environment = {
       STAGE: stage,
-      LOG_LEVEL: process.env.LOG_LEVEL,
-      MONGO_URI: process.env.MONGO_URI,
+      LOG_LEVEL: process.env.LOG_LEVEL
     }
 
     const bucket = new sst.aws.Bucket('assets');
 
-    const authTable = new sst.aws.Dynamo('auth', {
+    const authTable = new sst.aws.Dynamo('auth_table', {
       fields: { id: 'string', username: 'string' },
       primaryIndex: { hashKey: 'id' },
       globalIndexes: { username_idx: { hashKey: 'username' } }

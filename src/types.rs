@@ -1,8 +1,12 @@
+use aws_sdk_dynamodb::Client;
 use axum::response::Response;
 use moka::future::Cache;
 use serde::{Deserialize, Serialize};
 
-use crate::{env::Stage, errors::AppError};
+use crate::{
+    env::{Env, Stage},
+    errors::AppError,
+};
 
 pub type ApiResponse = Result<Response, AppError>;
 
@@ -17,5 +21,7 @@ pub struct Ping {
 
 #[derive(Clone, Debug)]
 pub struct AppState {
-    pub env_cache: Cache<String, Ping>,
+    pub auth_table_client: Client,
+    pub env: Env,
+    pub stage_cache: Cache<String, Ping>,
 }
