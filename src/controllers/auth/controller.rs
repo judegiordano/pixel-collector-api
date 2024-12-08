@@ -1,32 +1,45 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Json, Path, State},
     response::IntoResponse,
-    Json,
 };
+use serde::Deserialize;
+use serde_json::json;
 
 use crate::{
+    aws::dynamo::DynamoHelper,
     models::auth::Auth,
     types::{ApiResponse, AppState},
 };
 
+#[derive(Debug, Deserialize)]
+pub struct Login {
+    pub username: String,
+}
+
 pub async fn read_by_id(State(state): State<AppState>, Path(id): Path<String>) -> ApiResponse {
-    let item = Auth::get_by_id(
-        &state.auth_table_client,
-        &state.env.auth_table_name,
-        &id.to_string(),
-    )
-    .await?;
+    let item = Auth::get_by_id(&state.auth_table, &id).await?;
     Ok(Json(item).into_response())
 }
 
-pub async fn create(State(state): State<AppState>) -> ApiResponse {
+pub async fn login(State(state): State<AppState>, Json(body): Json<Login>) -> ApiResponse {
+    let item = Auth::login(&state.auth_table, &body.username).await?;
+    Ok(Json(item).into_response())
+}
+
+pub async fn register(State(state): State<AppState>) -> ApiResponse {
     let new = Auth {
         username: format!("username_{}", Auth::generate_nanoid()),
         password: format!("password_{}", Auth::generate_nanoid()),
+        metadata: Some(json!({
+            "age": 27,
+            "hobbies": ["coding", "video games"],
+            "address": {
+                "street": 123,
+                "name": "fake street"
+            }
+        })),
         ..Default::default()
     };
-    let inserted = new
-        .create(&state.auth_table_client, &state.env.auth_table_name)
-        .await?;
+    let inserted = new.register(&state.auth_table).await?;
     Ok(Json(inserted).into_response())
 }

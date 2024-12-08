@@ -57,6 +57,7 @@ export default $config({
     return {
       api: api.url,
       url: router.url,
+      table: authTable.name,
       bucket: bucket.name,
     }
   },

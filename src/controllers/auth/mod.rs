@@ -7,5 +7,6 @@ mod controller;
 pub fn router() -> axum::Router<AppState> {
     axum::Router::new()
         .route("/:id", get(controller::read_by_id))
-        .route("/", post(controller::create))
+        .route("/register", post(controller::register))
+        .route("/login", post(controller::login))
 }
