@@ -35,5 +35,6 @@ aws-sdk-dynamodb = "1.55.0"
 name = "api"
 path = "src/bin/handlers/api.rs"
 
-
-
+[[bin]]
+name = "truncate"
+path = "src/bin/scripts/truncate_db.rs"
