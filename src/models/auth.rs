@@ -3,7 +3,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{aws::dynamo::DynamoHelper, errors::AppError, types::DynamoConnection};
+use crate::{aws::dynamo::Table, errors::AppError, types::DynamoConnection};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Auth {
@@ -15,14 +15,14 @@ pub struct Auth {
     pub updated_at: chrono::DateTime<Utc>,
 }
 
-impl DynamoHelper for Auth {}
+impl Table for Auth {}
 
 impl Default for Auth {
     fn default() -> Self {
         Self {
             id: Self::generate_nanoid(),
-            username: Default::default(),
-            password: Default::default(),
+            username: String::default(),
+            password: String::default(),
             metadata: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -69,13 +69,12 @@ impl Auth {
             .expression_attribute_names("#username", "username")
             .expression_attribute_values(":username", AttributeValue::S(username.to_string()));
         let output = get.send().await.map_err(AppError::bad_request)?;
-        let items = match output.items {
-            Some(items) => items,
-            None => return Err(AppError::not_found("no auth documents found")),
+        let Some(items) = output.items else {
+            return Err(AppError::not_found("no auth documents found"));
         };
         items.first().map_or_else(
             || Err(AppError::not_found("no auth documents found")),
-            |exists| Self::from_attribute_map(exists),
+            Self::from_attribute_map,
         )
     }
 }

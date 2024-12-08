@@ -6,7 +6,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::{
-    aws::dynamo::DynamoHelper,
+    aws::dynamo::Table,
     models::auth::Auth,
     types::{ApiResponse, AppState},
 };

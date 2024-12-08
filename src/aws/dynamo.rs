@@ -1,7 +1,7 @@
 use aws_sdk_dynamodb::{types::AttributeValue, Client};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Debug};
 
 use crate::errors::AppError;
 
@@ -20,8 +20,8 @@ pub async fn connect() -> Client {
     Client::new(&config)
 }
 
-pub trait DynamoHelper: Serialize + DeserializeOwned {
-    fn _safe_parse(string: &String) -> u64 {
+pub trait Table: Serialize + DeserializeOwned + Debug {
+    fn _safe_parse(string: &str) -> u64 {
         match string.parse() {
             Ok(parsed) => parsed,
             Err(err) => {
@@ -112,7 +112,12 @@ pub trait DynamoHelper: Serialize + DeserializeOwned {
 
     fn to_attribute_map(&self) -> Result<HashMap<String, AttributeValue>, AppError> {
         let json = serde_json::to_value(self).map_err(AppError::bad_request)?;
-        let object = json.as_object().unwrap();
+        let Some(object) = json.as_object() else {
+            tracing::error!("[ERROR]: converting {self:?}");
+            return Err(AppError::internal_server_error(
+                "error converting to object",
+            ));
+        };
         let map = object.iter().fold(HashMap::new(), |mut acc, (key, value)| {
             acc.insert(key.to_string(), Self::_serde_value_to_attribute(value));
             acc
