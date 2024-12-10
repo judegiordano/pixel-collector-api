@@ -1,9 +1,11 @@
+use dotenv::dotenv;
 use pixel_collector_api::{aws::dynamo::connect, env::Env, errors::AppError};
 use std::collections::HashMap;
 
 #[allow(clippy::unwrap_used)]
 #[tokio::main]
 async fn main() -> Result<(), AppError> {
+    dotenv().ok();
     let client = connect().await;
     let env = Env::load()?;
     let table = env.auth_table_name;

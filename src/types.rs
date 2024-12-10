@@ -31,3 +31,9 @@ pub struct AppState {
     pub env: Env,
     pub stage_cache: Cache<String, Ping>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct Login {
+    pub username: String,
+    pub password: String,
+}
