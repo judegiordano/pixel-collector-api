@@ -2,8 +2,12 @@ use mongoose::{doc, types::MongooseError, DateTime, IndexModel, IndexOptions, Mo
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    env::Env,
     errors::AppError,
-    oauth::google::{GoogleAccessToken, GoogleUserInfo},
+    oauth::{
+        self,
+        google::types::{GoogleAccessToken, GoogleUserInfo},
+    },
 };
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
@@ -56,17 +60,18 @@ impl User {
         google_user_info: GoogleUserInfo,
         token_data: GoogleAccessToken,
     ) -> Result<Self, AppError> {
-        let exists = Self::read(doc! {
+        if let Ok(user) = Self::read(doc! {
             "auth.google.metadata.id": google_user_info.id.to_string()
         })
         .await
-        .map_or(None, Some);
-        // user exists; update data
-        if let Some(mut user) = exists {
-            user.auth.google.tokens = token_data;
-            user.auth.google.metadata = google_user_info;
-            let auth_updates = Self::to_bson(user.auth)?;
-            return Self::update(doc! { "_id": user.id }, doc! { "auth": auth_updates })
+        {
+            let updates = doc! {
+                "auth.google": {
+                    "metadata": Self::to_bson(google_user_info)?,
+                    "tokens": Self::to_bson(token_data)?,
+                }
+            };
+            return Self::update(doc! { "_id": user.id }, updates)
                 .await
                 .map_err(AppError::bad_request);
         };
@@ -82,6 +87,28 @@ impl User {
         };
         let user = user.save().await.map_err(AppError::bad_request)?;
         Ok(user)
+    }
+
+    pub async fn refresh_google_tokens(&self, env: &Env) -> Result<Self, AppError> {
+        let refresh_token = &self.auth.google.tokens.refresh_token;
+        let tokens = oauth::google::refresh_tokens(
+            &env.google_client_id,
+            &env.google_client_secret,
+            &refresh_token,
+        )
+        .await?;
+        let updates = doc! {
+            "auth.google.tokens": {
+                "access_token": tokens.access_token,
+                "expires_in": tokens.expires_in,
+                "token_type": tokens.token_type,
+                "scope": tokens.scope,
+                "refresh_token": refresh_token,
+            }
+        };
+        Self::update(doc! { "_id": &self.id }, updates)
+            .await
+            .map_err(AppError::internal_server_error)
     }
 }
 

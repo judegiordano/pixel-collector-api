@@ -46,3 +46,7 @@ path = "src/bin/scripts/truncate_db.rs"
 [[bin]]
 name = "migrate"
 path = "src/bin/scripts/migrate.rs"
+
+[[bin]]
+name = "refresh_google_tokens"
+path = "src/bin/scripts/refresh_google_tokens.rs"

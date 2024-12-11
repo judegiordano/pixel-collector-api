@@ -37,34 +37,3 @@ pub struct Login {
     pub username: String,
     pub password: String,
 }
-
-pub mod oauth {
-    use base64::{prelude::BASE64_URL_SAFE, Engine};
-    use serde::{Deserialize, Serialize};
-
-    use crate::errors::AppError;
-
-    #[derive(Debug, Serialize)]
-    pub struct OauthLinks {
-        pub google: String,
-    }
-
-    #[derive(Debug, Deserialize, Serialize)]
-    pub struct State {
-        pub host: u32,
-        pub token: String,
-    }
-
-    impl State {
-        pub fn to_base64(&self) -> Result<String, AppError> {
-            let str = serde_json::to_string(&self).map_err(AppError::bad_request)?;
-            Ok(BASE64_URL_SAFE.encode(str))
-        }
-    }
-
-    #[derive(Debug, Deserialize)]
-    pub struct GoogleOauthCallback {
-        pub code: String,
-        pub state: String,
-    }
-}
