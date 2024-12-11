@@ -17,6 +17,8 @@ pub struct Env {
     pub log_level: Level,
     pub bucket_name: String,
     pub auth_table_name: String,
+    pub google_client_id: String,
+    pub google_client_secret: String,
 }
 
 impl Env {
@@ -65,6 +67,8 @@ impl Env {
             log_level: Self::log_level(),
             auth_table_name: Self::_get_required_string("AUTH_TABLE_NAME")?,
             bucket_name: Self::_get_required_string("BUCKET_NAME")?,
+            google_client_id: Self::_get_required_string("GOOGLE_CLIENT_ID")?,
+            google_client_secret: Self::_get_required_string("GOOGLE_CLIENT_SECRET")?,
         })
     }
 }

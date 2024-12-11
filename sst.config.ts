@@ -17,7 +17,10 @@ export default $config({
     const { stage } = $app;
     const environment = {
       STAGE: stage,
-      LOG_LEVEL: process.env.LOG_LEVEL
+      LOG_LEVEL: process.env.LOG_LEVEL,
+      MONGO_URI: process.env.MONGO_URI,
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+      GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     }
 
     const bucket = new sst.aws.Bucket('assets');

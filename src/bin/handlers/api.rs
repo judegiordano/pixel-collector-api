@@ -23,7 +23,7 @@ pub async fn main() -> Result<(), Error> {
     };
     let app = axum::Router::new().nest("/", routes()).with_state(state);
     if cfg!(debug_assertions) {
-        let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+        let listener = tokio::net::TcpListener::bind("localhost:3000").await?;
         tracing::info!("listening on {:?}", listener.local_addr()?);
         return Ok(axum::serve(listener, app).await?);
     }

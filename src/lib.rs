@@ -4,6 +4,7 @@ pub mod controllers;
 pub mod env;
 pub mod errors;
 pub mod models;
+pub mod oauth;
 pub mod types;
 
 pub mod logger {

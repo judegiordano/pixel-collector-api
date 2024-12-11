@@ -8,5 +8,5 @@ pub fn routes() -> axum::Router<AppState> {
     axum::Router::new()
         .nest("/dev", dev::router())
         .nest("/auth", auth::router())
-        .nest("/oauth", auth::router())
+        .nest("/oauth", oauth::router())
 }
