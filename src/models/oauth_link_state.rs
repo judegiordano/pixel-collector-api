@@ -26,13 +26,6 @@ pub struct LinkState {
 }
 
 impl LinkState {
-    pub fn build_redirect(host: &str) -> String {
-        match host {
-            //
-            _ => "http://localhost:3000/oauth/google-redirect".to_string(),
-        }
-    }
-
     pub async fn migrate() -> Result<Vec<String>, MongooseError> {
         let expiration = Duration::from_secs(60 * 10);
         let created = Self::create_indexes(&[IndexModel::builder()
@@ -46,9 +39,14 @@ impl LinkState {
 
 impl Default for LinkState {
     fn default() -> Self {
+        let redirect = if cfg!(debug_assertions) {
+            "http://localhost:3000/oauth/google-redirect"
+        } else {
+            "https://api.pixel-collector.judethings.com/oauth/google-redirect"
+        };
         Self {
             id: Self::generate_nanoid(),
-            redirect: String::default(),
+            redirect: redirect.to_string(),
             provider: Provider::GOOGLE,
             created_at: DateTime::now(),
             updated_at: DateTime::now(),

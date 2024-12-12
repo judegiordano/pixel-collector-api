@@ -1,9 +1,11 @@
+use axum::extract::Request;
 use mongoose::{doc, types::MongooseError, DateTime, IndexModel, IndexOptions, Model};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     env::Env,
     errors::AppError,
+    jwt::{self, Claims, Service},
     oauth::{
         self,
         google::types::{GoogleAccessToken, GoogleUserInfo},
@@ -18,6 +20,7 @@ pub struct GoogleProviderInformation {
 
 #[derive(Debug, Deserialize, Serialize, Clone, Default)]
 pub struct Auth {
+    pub token_version: u32,
     pub google: GoogleProviderInformation,
     // other providers
 }
@@ -27,6 +30,7 @@ pub struct User {
     #[serde(rename = "_id")]
     pub id: String,
     pub auth: Auth,
+    pub service: Service,
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }
@@ -36,6 +40,7 @@ impl Default for User {
         Self {
             id: Self::generate_nanoid(),
             auth: Auth::default(),
+            service: Service::LOCALHOST,
             created_at: DateTime::now(),
             updated_at: DateTime::now(),
         }
@@ -82,6 +87,7 @@ impl User {
                     tokens: token_data,
                     metadata: google_user_info,
                 },
+                ..Default::default()
             },
             ..Default::default()
         };
@@ -109,6 +115,47 @@ impl User {
         Self::update(doc! { "_id": &self.id }, updates)
             .await
             .map_err(AppError::internal_server_error)
+    }
+
+    pub fn sign_token(&self, secret: &str) -> Result<String, AppError> {
+        jwt::sign(&self.id, self.auth.token_version, self.service, secret)
+    }
+
+    pub fn verify_token(token: &str, secret: &str) -> Result<Claims, AppError> {
+        jwt::verify(token, secret)
+    }
+
+    pub async fn authenticate(req: Request, secret: &str) -> Result<Self, AppError> {
+        let headers = req.headers();
+        let auth = headers
+            .get("authorization")
+            .ok_or_else(|| AppError::unauthorized("missing auth header"))?;
+        let parts = auth
+            .to_str()
+            .map_err(AppError::internal_server_error)?
+            .split_ascii_whitespace()
+            .collect::<Vec<_>>();
+        let token = *parts
+            .get(1)
+            .ok_or_else(|| AppError::unauthorized("missing auth token"))?;
+        let Claims {
+            user_id,
+            token_version,
+            issuer,
+            ..
+        } = Self::verify_token(token, secret)?;
+        let user = Self::read_by_id(user_id)
+            .await
+            .map_err(AppError::internal_server_error)?;
+        if token_version != user.auth.token_version {
+            return Err(AppError::unauthorized("invalid token version"));
+        }
+        if issuer != user.service {
+            return Err(AppError::forbidden(
+                "you do not have permission to access this service",
+            ));
+        }
+        Ok(user)
     }
 }
 

@@ -4,15 +4,22 @@ use crate::{
     types::{ApiResponse, AppState},
 };
 use axum::{
-    extract::{Host, Query, State},
+    extract::{Host, Query, Request, State},
     response::IntoResponse,
     Json,
 };
+use serde_json::json;
 
 pub async fn get_oauth_links(State(state): State<AppState>, Host(host): Host) -> ApiResponse {
-    let google = oauth::google::build_oauth_link(&state.env.google_client_id, &host).await?;
+    tracing::info!("[HOST]: {host}");
+    let google = oauth::google::build_oauth_link(&state.env.google_client_id).await?;
     let links = oauth::types::Links { google };
     Ok(Json(links).into_response())
+}
+
+pub async fn user(State(state): State<AppState>, req: Request) -> ApiResponse {
+    let user = User::authenticate(req, &state.env.jwt_secret).await?;
+    Ok(Json(user).into_response())
 }
 
 pub async fn google_redirect_handler(
@@ -27,5 +34,6 @@ pub async fn google_redirect_handler(
     .await?;
     let user_metadata = oauth::google::fetch_user_info(&token_data.access_token).await?;
     let user = User::create_or_update_google(user_metadata, token_data).await?;
-    Ok(Json(user).into_response())
+    let token = user.sign_token(&state.env.jwt_secret)?;
+    Ok(Json(json!({ "token": token })).into_response())
 }

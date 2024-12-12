@@ -34,6 +34,7 @@ base64 = "0.22.1"
 mongoose = "0.6.2"
 uuid = { version = "1.11.0", features = ["v4"] }
 bson = "2.13.0"
+jsonwebtoken = "9.3.0"
 
 [[bin]]
 name = "api"

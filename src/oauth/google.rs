@@ -48,9 +48,8 @@ const GOOGLE_SCOPES: [&str; 3] = [
     "https://www.googleapis.com/auth/userinfo.profile",
 ];
 
-pub async fn build_oauth_link(client_id: &str, host: &str) -> Result<String, AppError> {
+pub async fn build_oauth_link(client_id: &str) -> Result<String, AppError> {
     let link_state = LinkState {
-        redirect: LinkState::build_redirect(host),
         provider: Provider::GOOGLE,
         ..Default::default()
     }

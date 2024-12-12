@@ -19,6 +19,7 @@ pub struct Env {
     pub auth_table_name: String,
     pub google_client_id: String,
     pub google_client_secret: String,
+    pub jwt_secret: String,
 }
 
 impl Env {
@@ -69,6 +70,7 @@ impl Env {
             bucket_name: Self::_get_required_string("BUCKET_NAME")?,
             google_client_id: Self::_get_required_string("GOOGLE_CLIENT_ID")?,
             google_client_secret: Self::_get_required_string("GOOGLE_CLIENT_SECRET")?,
+            jwt_secret: Self::_get_required_string("JWT_SECRET")?,
         })
     }
 }
