@@ -62,6 +62,9 @@ jobs:
       - name: cargo lint
         run: cargo lint
 
+      - name: add vendored openssl
+        run: cargo add openssl@0.10.63 --features vendored
+
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
