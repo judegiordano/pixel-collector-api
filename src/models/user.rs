@@ -53,19 +53,24 @@ impl User {
     }
 
     pub async fn migrate() -> Result<Vec<String>, MongooseError> {
-        let created = Self::create_indexes(&[IndexModel::builder()
-            .keys(doc! { "auth.google.metadata.id": 1 })
-            .options(IndexOptions::builder().unique(true).build())
-            .build()])
+        let created = Self::create_indexes(&[
+            IndexModel::builder()
+                .keys(doc! { "auth.google.metadata.id": 1 })
+                .options(IndexOptions::builder().unique(true).build())
+                .build(),
+            IndexModel::builder().keys(doc! { "service": 1 }).build(),
+        ])
         .await?;
         Ok(created.index_names)
     }
 
     pub async fn create_or_update_google(
+        service: Service,
         google_user_info: GoogleUserInfo,
         token_data: GoogleAccessToken,
     ) -> Result<Self, AppError> {
         if let Ok(user) = Self::read(doc! {
+            "service": service.to_string(),
             "auth.google.metadata.id": google_user_info.id.to_string()
         })
         .await
@@ -82,6 +87,7 @@ impl User {
         };
         // else build new user
         let user = Self {
+            service,
             auth: Auth {
                 google: GoogleProviderInformation {
                     tokens: token_data,

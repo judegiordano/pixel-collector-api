@@ -1,5 +1,6 @@
 use core::fmt;
 
+use axum::http::HeaderMap;
 use chrono::Duration;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
@@ -9,6 +10,22 @@ use crate::errors::AppError;
 #[derive(Debug, Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
 pub enum Service {
     LOCALHOST,
+}
+
+impl Service {
+    pub fn from_headers(headers: HeaderMap) -> Result<Service, AppError> {
+        if cfg!(debug_assertions) {
+            return Ok(Service::LOCALHOST);
+        }
+        let header = headers
+            .get("X-JUDETHING-SERVICE")
+            .ok_or_else(|| AppError::bad_request("Missing header: 'X-JUDETHING-SERVICE'"))?;
+        let service = match header.to_str().map_err(AppError::bad_request)? {
+            // TODO: add apps and error on un-supported app
+            _ => Service::LOCALHOST,
+        };
+        Ok(service)
+    }
 }
 
 impl fmt::Display for Service {

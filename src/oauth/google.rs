@@ -1,11 +1,7 @@
-use mongoose::{doc, Model};
 use reqwest::{Client, Url};
 use types::{GoogleAccessToken, GoogleRefreshToken, GoogleUserInfo};
 
-use crate::{
-    errors::AppError,
-    models::oauth_link_state::{LinkState, Provider},
-};
+use crate::{errors::AppError, models::oauth_link_state::LinkState};
 
 pub mod types {
     use serde::{Deserialize, Serialize};
@@ -48,21 +44,14 @@ const GOOGLE_SCOPES: [&str; 3] = [
     "https://www.googleapis.com/auth/userinfo.profile",
 ];
 
-pub async fn build_oauth_link(client_id: &str) -> Result<String, AppError> {
-    let link_state = LinkState {
-        provider: Provider::GOOGLE,
-        ..Default::default()
-    }
-    .save()
-    .await
-    .map_err(AppError::bad_request)?;
+pub async fn build_oauth_link(client_id: &str, state: &LinkState) -> Result<String, AppError> {
     let query = [
         ("client_id", client_id.to_string()),
         ("access_type", "offline".to_string()),
-        ("redirect_uri", link_state.redirect.to_string()),
+        ("redirect_uri", state.redirect.to_string()),
         ("response_type", "code".to_string()),
         ("prompt", "consent".to_string()),
-        ("state", link_state.id),
+        ("state", state.id.to_string()),
         ("scope", GOOGLE_SCOPES.join(" ")),
         ("include_granted_scopes", "true".to_string()),
     ];
@@ -77,20 +66,17 @@ pub async fn build_oauth_link(client_id: &str) -> Result<String, AppError> {
 }
 
 pub async fn handle_callback(
-    client_id: String,
-    client_secret: String,
-    params: super::types::GoogleOauthCallback,
+    client_id: &str,
+    client_secret: &str,
+    code: &str,
+    redirect: &str,
 ) -> Result<GoogleAccessToken, AppError> {
-    // assert link state was created by this service
-    let link = LinkState::read_by_id(&params.state)
-        .await
-        .map_err(AppError::unauthorized)?;
     let query = [
         ("client_id", client_id),
         ("client_secret", client_secret),
-        ("redirect_uri", link.redirect),
-        ("grant_type", "authorization_code".to_string()),
-        ("code", params.code),
+        ("redirect_uri", redirect),
+        ("grant_type", "authorization_code"),
+        ("code", code),
     ];
     let response = Client::new()
         .post(GOOGLE_TOKEN_ENDPOINT)
@@ -98,9 +84,6 @@ pub async fn handle_callback(
         .send()
         .await
         .map_err(AppError::unauthorized)?;
-    LinkState::delete(doc! { "_id": params.state })
-        .await
-        .map_err(AppError::internal_server_error)?;
     response.json().await.map_err(AppError::unauthorized)
 }
 

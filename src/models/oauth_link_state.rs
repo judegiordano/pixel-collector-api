@@ -2,6 +2,8 @@ use mongoose::{doc, types::MongooseError, DateTime, IndexModel, IndexOptions, Mo
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+use crate::jwt::Service;
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum Provider {
     GOOGLE,
@@ -20,6 +22,7 @@ pub struct LinkState {
     #[serde(rename = "_id")]
     pub id: String,
     pub provider: Provider,
+    pub service: Service,
     pub redirect: String,
     pub created_at: DateTime,
     pub updated_at: DateTime,
@@ -47,6 +50,7 @@ impl Default for LinkState {
         Self {
             id: Self::generate_nanoid(),
             redirect: redirect.to_string(),
+            service: Service::LOCALHOST,
             provider: Provider::GOOGLE,
             created_at: DateTime::now(),
             updated_at: DateTime::now(),
