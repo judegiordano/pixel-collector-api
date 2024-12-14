@@ -26,7 +26,8 @@ export default $config({
 
     const bucket = new sst.aws.Bucket('assets');
 
-    const authTable = new sst.aws.Dynamo('auth_table', {
+    const authTable = new sst.aws.Dynamo('table', {
+      transform: { table: { name: 'pixel_collector_users' } },
       fields: { id: 'string', username: 'string' },
       primaryIndex: { hashKey: 'id' },
       globalIndexes: { username_idx: { hashKey: 'username' } }
