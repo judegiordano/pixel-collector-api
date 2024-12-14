@@ -2,6 +2,7 @@ use aws_sdk_dynamodb::{operation::query::QueryOutput, types::AttributeValue};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashMap;
 
 use crate::{aws::dynamo::Table, errors::AppError, types::DynamoConnection};
 
@@ -87,10 +88,109 @@ impl Auth {
         let Some(items) = output.items else {
             return Err(AppError::not_found("username not found"));
         };
-        // TODO: compare password hash
-        items.first().map_or_else(
-            || Err(AppError::not_found("username not found")),
-            Self::from_attribute_map,
-        )
+        if let Some(first) = items.first() {
+            return Ok(Self {
+                id: first.s("id")?,
+                username: first.s("username")?,
+                password: first.s("password")?,
+                metadata: None,
+                created_at: first.n("created_at")?,
+                updated_at: first.n("updated_at")?,
+            });
+        }
+        Err(AppError::not_found("username not found"))
+        // // TODO: compare password hash
+        // items.first().map_or_else(
+        //     || Err(AppError::not_found("username not found")),
+        //     Self::from_attribute_map,
+        // )
+    }
+}
+
+#[allow(dead_code)]
+trait DynamoHelper {
+    fn s(&self, key: &str) -> Result<String, AppError>;
+    fn s_option(&self, key: &str) -> Result<Option<String>, AppError>;
+    fn n<T: std::str::FromStr>(&self, key: &str) -> Result<T, AppError>;
+    fn n_option<T: std::str::FromStr>(&self, key: &str) -> Result<Option<T>, AppError>;
+}
+
+impl DynamoHelper for &HashMap<String, AttributeValue> {
+    fn s(&self, key: &str) -> Result<String, AppError> {
+        let value = match self.get(key) {
+            Some(exists) => exists,
+            None => {
+                tracing::error!("[ERROR]: cannot find {key} in {self:?}");
+                return Err(AppError::internal_server_error("error parsing key"));
+            }
+        };
+        match value.as_s() {
+            Ok(value) => Ok(value.to_string()),
+            Err(err) => {
+                tracing::error!("[ERROR]: cannot parse {key} {err:?}");
+                Err(AppError::internal_server_error("error parsing value"))
+            }
+        }
+    }
+    fn s_option(&self, key: &str) -> Result<Option<String>, AppError> {
+        let value = match self.get(key) {
+            Some(exists) => exists,
+            None => return Ok(None),
+        };
+        match value.as_s() {
+            Ok(value) => Ok(Some(value.to_string())),
+            Err(err) => {
+                tracing::error!("[ERROR]: cannot parse {key} {err:?}");
+                Err(AppError::internal_server_error("error parsing value"))
+            }
+        }
+    }
+
+    fn n<T: std::str::FromStr>(&self, key: &str) -> Result<T, AppError> {
+        let value = match self.get(key) {
+            Some(exists) => exists,
+            None => {
+                tracing::error!("[ERROR]: cannot find {key} in {self:?}");
+                return Err(AppError::internal_server_error("error parsing key"));
+            }
+        };
+        let num = match value.as_n() {
+            Ok(value) => value.to_string(),
+            Err(err) => {
+                tracing::error!("[ERROR]: cannot parse {key} {err:?}");
+                return Err(AppError::internal_server_error("error parsing value"));
+            }
+        };
+        match num.parse::<T>() {
+            Ok(num) => Ok(num),
+            Err(_) => {
+                tracing::error!("[ERROR]: cannot parse number {key}");
+                return Err(AppError::internal_server_error(
+                    "error parsing value as number",
+                ));
+            }
+        }
+    }
+    fn n_option<T: std::str::FromStr>(&self, key: &str) -> Result<Option<T>, AppError> {
+        let value = match self.get(key) {
+            Some(exists) => exists,
+            None => return Ok(None),
+        };
+        let num = match value.as_n() {
+            Ok(value) => value.to_string(),
+            Err(err) => {
+                tracing::error!("[ERROR]: cannot parse {key} {err:?}");
+                return Err(AppError::internal_server_error("error parsing value"));
+            }
+        };
+        match num.parse::<T>() {
+            Ok(num) => Ok(Some(num)),
+            Err(_) => {
+                tracing::error!("[ERROR]: cannot parse number {key}");
+                return Err(AppError::internal_server_error(
+                    "error parsing value as number",
+                ));
+            }
+        }
     }
 }
