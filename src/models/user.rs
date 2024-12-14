@@ -106,7 +106,7 @@ impl User {
         let tokens = oauth::google::refresh_tokens(
             &env.google_client_id,
             &env.google_client_secret,
-            &refresh_token,
+            refresh_token,
         )
         .await?;
         let updates = doc! {

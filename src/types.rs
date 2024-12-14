@@ -19,15 +19,9 @@ pub struct Ping {
     pub last_updated: i64,
 }
 
-#[derive(Debug, Clone)]
-pub struct DynamoConnection {
-    pub client: Client,
-    pub table: String,
-}
-
 #[derive(Clone, Debug)]
 pub struct AppState {
-    pub auth_table: DynamoConnection,
+    pub dynamo: Client,
     pub env: Env,
     pub stage_cache: Cache<String, Ping>,
 }

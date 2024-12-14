@@ -5,19 +5,15 @@ use pixel_collector_api::{
     controllers::routes,
     env::Env,
     logger,
-    types::{AppState, DynamoConnection, ONE_MINUTE_IN_MS},
+    types::{AppState, ONE_MINUTE_IN_MS},
 };
 
 #[tokio::main]
 pub async fn main() -> Result<(), Error> {
     logger::init()?;
     let env = Env::load()?;
-    let connection = dynamo::connect().await;
     let state = AppState {
-        auth_table: DynamoConnection {
-            client: connection,
-            table: env.auth_table_name.to_string(),
-        },
+        dynamo: dynamo::connect().await,
         env,
         stage_cache: cache::prepare(10_000, ONE_MINUTE_IN_MS),
     };

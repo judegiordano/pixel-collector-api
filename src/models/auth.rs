@@ -1,9 +1,9 @@
-use aws_sdk_dynamodb::{operation::query::QueryOutput, types::AttributeValue};
+use aws_sdk_dynamodb::{operation::query::QueryOutput, types::AttributeValue, Client};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{aws::dynamo::Table, errors::AppError, types::DynamoConnection};
+use crate::{aws::dynamo::Table, errors::AppError};
 
 pub const USERNAME_IDX: &str = "username_idx";
 
@@ -34,12 +34,11 @@ impl Default for Auth {
 }
 
 impl Auth {
-    pub async fn get_by_id(conn: &DynamoConnection, id: &str) -> Result<Self, AppError> {
+    pub async fn get_by_id(conn: &Client, id: &str) -> Result<Self, AppError> {
         let value = AttributeValue::S(id.to_string());
         let get = conn
-            .client
             .get_item()
-            .table_name(&conn.table)
+            .table_name(Self::table_name())
             .key("id", value);
         let output = get.send().await.map_err(AppError::not_found)?;
         let Some(item) = output.item else {
@@ -48,13 +47,9 @@ impl Auth {
         Self::from_attribute_map(&item)
     }
 
-    async fn get_by_username_query(
-        conn: &DynamoConnection,
-        username: &str,
-    ) -> Result<QueryOutput, AppError> {
-        conn.client
-            .query()
-            .table_name(&conn.table)
+    async fn get_by_username_query(conn: &Client, username: &str) -> Result<QueryOutput, AppError> {
+        conn.query()
+            .table_name(Self::table_name())
             .index_name(USERNAME_IDX)
             .key_condition_expression("#username = :username")
             .expression_attribute_names("#username", "username")
@@ -64,7 +59,7 @@ impl Auth {
             .map_err(AppError::bad_request)
     }
 
-    pub async fn register(&mut self, conn: &DynamoConnection) -> Result<Self, AppError> {
+    pub async fn register(&mut self, conn: &Client) -> Result<Self, AppError> {
         let output = Self::get_by_username_query(conn, &self.username).await?;
         if !output.items().is_empty() {
             return Err(AppError::bad_request("username taken"));
@@ -72,9 +67,8 @@ impl Auth {
         // hash password
         self.password = "HASHED".to_string();
         let item = self.to_attribute_map()?;
-        conn.client
-            .put_item()
-            .table_name(&conn.table)
+        conn.put_item()
+            .table_name(Self::table_name())
             .set_item(Some(item))
             .send()
             .await
@@ -82,14 +76,14 @@ impl Auth {
         Ok(self.clone())
     }
 
-    pub async fn login(conn: &DynamoConnection, username: &str) -> Result<Self, AppError> {
+    pub async fn login(conn: &Client, username: &str) -> Result<Self, AppError> {
         let output = Self::get_by_username_query(conn, username).await?;
         let Some(items) = output.items else {
             return Err(AppError::not_found("username not found"));
         };
         if let Some(first) = items.first() {
             // TODO: compare password hash
-            return Self::from_attribute_map(&first);
+            return Self::from_attribute_map(first);
         }
         Err(AppError::not_found("username not found"))
     }

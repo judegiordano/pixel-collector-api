@@ -44,8 +44,7 @@ export default $config({
       logging: { retention: '1 week', format: 'json' },
       environment: {
         ...environment,
-        BUCKET_NAME: bucket.name,
-        AUTH_TABLE_NAME: authTable.name
+        BUCKET_NAME: bucket.name
       },
       link: [bucket, authTable]
     });

@@ -1,5 +1,9 @@
 use dotenv::dotenv;
-use pixel_collector_api::{aws::dynamo::connect, env::Env, errors::AppError};
+use pixel_collector_api::{
+    aws::dynamo::{connect, Table},
+    errors::AppError,
+    models::auth::Auth,
+};
 use std::collections::HashMap;
 
 #[allow(clippy::unwrap_used)]
@@ -7,11 +11,9 @@ use std::collections::HashMap;
 async fn main() -> Result<(), AppError> {
     dotenv().ok();
     let client = connect().await;
-    let env = Env::load()?;
-    let table = env.auth_table_name;
     let output = client
         .scan()
-        .table_name(table.clone())
+        .table_name(Auth::table_name())
         .send()
         .await
         .map_err(AppError::bad_request)?;
@@ -21,7 +23,7 @@ async fn main() -> Result<(), AppError> {
         key.insert("id".to_string(), id.clone());
         client
             .delete_item()
-            .table_name(table.clone())
+            .table_name(Auth::table_name())
             .set_key(Some(key))
             .send()
             .await

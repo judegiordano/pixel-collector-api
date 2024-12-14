@@ -13,16 +13,16 @@ pub enum Service {
 }
 
 impl Service {
-    pub fn from_headers(headers: HeaderMap) -> Result<Service, AppError> {
+    pub fn from_headers(headers: HeaderMap) -> Result<Self, AppError> {
         if cfg!(debug_assertions) {
-            return Ok(Service::LOCALHOST);
+            return Ok(Self::LOCALHOST);
         }
         let header = headers
             .get("X-JUDETHING-SERVICE")
             .ok_or_else(|| AppError::bad_request("Missing header: 'X-JUDETHING-SERVICE'"))?;
         let service = match header.to_str().map_err(AppError::bad_request)? {
             // TODO: add apps and error on un-supported app
-            _ => Service::LOCALHOST,
+            _ => Self::LOCALHOST,
         };
         Ok(service)
     }
